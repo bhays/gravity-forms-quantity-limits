@@ -3,12 +3,12 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: 
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.1
+Version: 0.2
 Author URI: http://benhays.com
 
 ------------------------------------------------------------------------
 Copyright 2013 Ben Hays
-last updated: March 13, 2013
+last updated: March 15, 2013
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -52,6 +52,10 @@ class GFLimit {
 	private static $slug = "gravity-forms-limiter";
 	public static $version = '0.1';
 	private static $min_gravityforms_version = '1.6';
+	
+	private static $m_sold_out = "Sorry, this item is sold out.";
+	private static $m_validation = "You ordered {ordered} items. There are only {remaining} items left.";
+	private static $m_remainder = "{remaining} items remaining.";
 
 	//Plugin starting point. Will load appropriate files
 	public static function init() {
@@ -61,7 +65,7 @@ class GFLimit {
 		if ( basename( $_SERVER['PHP_SELF'] ) == 'plugins.php' ) {
 
 			//loading translations
-			load_plugin_textdomain( 'gf-limit', FALSE, dirname( GF_LIMIT_FILE ) . '/languages' );
+			load_plugin_textdomain( 'gf-limit', FALSE, dirname( GF_LIMIT_FILE ).'/languages' );
 
 		}
 
@@ -80,7 +84,7 @@ class GFLimit {
 			self::setup();
 
 			//loading translations
-			load_plugin_textdomain( 'gf-limit', FALSE, dirname( GF_LIMIT_FILE ) . '/languages' );
+			load_plugin_textdomain( 'gf-limit', FALSE, dirname( GF_LIMIT_FILE ).'/languages' );
 
 			//integrating with Members plugin
 			if ( function_exists( 'members_get_capabilities' ) )
@@ -95,7 +99,7 @@ class GFLimit {
 				wp_enqueue_script( array( 'sack' ) );
 				
 				//loading Gravity Forms tooltips
-				require_once( GFCommon::get_base_path() . '/tooltips.php' );
+				require_once( GFCommon::get_base_path().'/tooltips.php' );
 				add_filter( 'gform_tooltips', array( 'GFLimit', 'gform_tooltips' ) );
 
 			}
@@ -115,13 +119,22 @@ class GFLimit {
 			
 			// Cycle through feeds and add limits to the form
 			foreach( $feeds as $k=>$v ) {
+				
+				// Replace variable strings
+				// {remaining} for remaining tickets
+				// {ordered} for tickets ordered
+				$validation = str_replace('{remaining}', '%2$s', $v['meta']['messages']['validation']);
+				$validation = str_replace('{ordered}', '%1$s', $validation);
+				$remainder = str_replace('{remaining}', '%1$s', $v['meta']['messages']['remainder']);
+				$sold_out = $v['meta']['messages']['sold_out'];				
+			
 				new GWLimitBySum(array(
 					'form_id' => $v['form_id'],
 					'field_id' => $v['field_id'],
 					'limit' => $v['limit'],
-					'limit_message' => '<span class="error-notice">Sorry, this class is sold out.</span>',
-					'validation_message' => 'You ordered %1$s tickets. There are only %2$s tickets left.',
-					'remainder_message' => '<span class="remaining">%1$s tickets remaining.</span>',
+					'limit_message' => '<span class="error-notice">'.$sold_out.'</span>',
+					'validation_message' => $validation,
+					'remainder_message' => '<span class="remaining">'.$remainder.'</span>',
 				));
 			}
 		}
@@ -162,9 +175,13 @@ class GFLimit {
 	//Adds feed tooltips to the list of tooltips
 	public static function gform_tooltips( $tooltips ) {
 		$limit_tooltips = array(
-			'limit_gravity_form'         => '<h6>' . __( 'Gravity Form', 'gf-limit' ) . '</h6>' . __( 'Select which Gravity Forms you would like to limit fields on.', 'gf-limit' ),
-			'limit_field'                => '<h6>' . __( 'Field', 'gf-limit' ) . '</h6>' . __( 'Select the field you would like to limit. Only product fields are listed.', 'gf-limit' ),
-			'limit_limit'                => '<h6>' . __( 'Limit', 'gf-limit' ) . '</h6>' . __( 'Enter the limit you would like to set for the field.', 'gf-limit' ),
+			'limit_gravity_form'         => '<h6>'.__( 'Gravity Form', 'gf-limit' ).'</h6>'.__( 'Select which Gravity Forms you would like to limit fields on.', 'gf-limit' ),
+			'limit_field'                => '<h6>'.__( 'Field', 'gf-limit' ).'</h6>'.__( 'Select the field you would like to limit. Only product fields are listed.', 'gf-limit' ),
+			'limit_limit'                => '<h6>'.__( 'Limit', 'gf-limit' ).'</h6>'.__( 'Enter the limit you would like to set for the field.', 'gf-limit' ),
+			'limit_message_sold_out'     => '<h6>'.__( 'Sold Out Message', 'gf-limit' ).'</h6>'.__( 'Message to be displayed when item has reached the set limit', 'gf-limit' ),
+			'limit_message_validation'   => '<h6>'.__( 'Validation Message', 'gf-limit' ).'</h6>'.__( 'Message to be displayed when someone selects too many of a quantity.', 'gf-limit' ),
+			'limit_message_remainder'    => '<h6>'.__( 'Remainder Message', 'gf-limit' ).'</h6>'.__( 'Message to be displayed for remaining items', 'gf-limit' ),
+			
 		);
 		return array_merge( $tooltips, $limit_tooltips );
 	}
@@ -231,7 +248,7 @@ class GFLimit {
 						<option value='delete'><?php _e( 'Delete', 'gf-limit' ) ?></option>
 					</select>
 					<?php
-					echo '<input type="submit" class="button" value="' . __( 'Apply', 'gf-limit' ) . '" onclick="if( jQuery(\'#bulk_action\').val() == \'delete\' && !confirm(\'' . __( 'Delete selected feeds? ', 'gf-limit' ) . __( '\'Cancel\' to stop, \'OK\' to delete.', 'gf-limit' ) . '\')) { return false; } return true;"/>';
+					echo '<input type="submit" class="button" value="'.__( 'Apply', 'gf-limit' ).'" onclick="if( jQuery(\'#bulk_action\').val() == \'delete\' && !confirm(\''.__( 'Delete selected feeds? ', 'gf-limit' ) . __( '\'Cancel\' to stop, \'OK\' to delete.', 'gf-limit' ).'\')) { return false; } return true;"/>';
 					?>
 				</div>
 			</div>
@@ -262,8 +279,6 @@ class GFLimit {
 					<?php
 
 					$feeds = GFLimitData::get_feeds();
-					
-					//printMe($feeds);
 					
 					if ( is_array( $feeds ) && sizeof( $feeds ) > 0 ) {
 						foreach ( $feeds as $feed ) { 
@@ -450,14 +465,6 @@ class GFLimit {
 		<div class="wrap">
 
 		<h2><?php _e( 'Quantity Limit Settings', 'gf-limit' ) ?></h2>
-		
-		
-		<?php /* TEST 
-			$foo = RGFormsModel::get_form_meta( 1 );
-			$bar = self::get_form_fields($foo);
-			printMe($bar); 
-			*/
-		?>
 
 			<?php
 
@@ -467,7 +474,11 @@ class GFLimit {
 				'limit'     => 10,
 				'meta'      => array(
 					'field_name' => '',
-					'message' => '',
+					'messages' => array(
+						'sold_out' => self::$m_sold_out,
+						'validation' => self::$m_validation,
+						'remainder' => self::$m_remainder,
+					),
 				),
 				'is_active' => true ) : GFLimitData::get_feed( $id );
 			$is_validation_error = false;
@@ -481,12 +492,16 @@ class GFLimit {
 				$config['limit']    = absint( rgpost( 'limit_limit' ) );
 				$config['meta'] = array(
 					'field_name'   => rgpost( 'limit_field_name' ),
-					'messages'     => ''
+					'messages'     => array(
+						'sold_out'    => rgpost('limit_message_sold_out'),
+						'validation'  => rgpost('limit_message_validation'),
+						'remainder'   => rgpost('limit_message_remainder')
+					),
 				);
-				// TODO: Add custom message stuff here in the meta field
 				
 				$config = apply_filters( 'gf_limit_feed_save_config', $config );
-
+				
+				// TODO: don't allow the same field to be limited twice
 				$is_validation_error = apply_filters( 'gf_limit_config_validation', false, $config );
 
 				if ( ! $is_validation_error ) {
@@ -582,6 +597,32 @@ class GFLimit {
 
 				<div id="form_fields">
 					<input type="text" name="limit_limit" value="<?php echo $config['limit'] ?>"/>
+				</div>
+			</div>
+
+			<div class="margin_vertical_10">
+				<label class="left_header"><?php _e( 'Sold out message', 'gf-limit' ); ?> <?php gform_tooltip( 'limit_message_sold_out' ) ?></label>
+
+				<div id="form_fields">
+					<input type="text" name="limit_message_sold_out" value="<?php echo $config['meta']['messages']['sold_out'] ?>" class="regular-text"/>
+				</div>
+			</div>
+
+			<div class="margin_vertical_10">
+				<label class="left_header"><?php _e( 'Validation message', 'gf-limit' ); ?> <?php gform_tooltip( 'limit_message_validation' ) ?></label>
+
+				<div id="form_fields">
+					<input type="text" name="limit_message_validation" value="<?php echo $config['meta']['messages']['validation'] ?>" class="regular-text"/>
+					<p class="description">Use <em>{remaining}</em> to display remaining number of items and <em>{ordered}</em> to display number of ordered items.</p>
+				</div>
+			</div>
+
+			<div class="margin_vertical_10">
+				<label class="left_header"><?php _e( 'Remainder message', 'gf-limit' ); ?> <?php gform_tooltip( 'limit_message_remainder' ) ?></label>
+
+				<div id="form_fields">
+					<input type="text" name="limit_message_remainder" value="<?php echo $config['meta']['messages']['remainder'] ?>" class="regular-text"/>
+					<p class="description">Use <em>{remaining}</em> to display remaining number of items. If left blank, no remainder message will show.</p>
 				</div>
 			</div>
 
@@ -911,7 +952,7 @@ class GFLimit {
 	}
 
 	public static function get_product_options( $form, $selected_field, $form_total ) {
-	    $str    = "<option value=''>" . __( 'Select a field', 'gf-limit' ) . '</option>';
+	    $str    = "<option value=''>" . __( 'Select a field', 'gf-limit' ).'</option>';
 		$fields = GFCommon::get_fields_by_type( $form, array( 'product' ) );
 		foreach ( $fields as $field ) {
 			$field_id    = $field['id'];

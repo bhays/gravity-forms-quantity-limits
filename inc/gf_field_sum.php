@@ -22,16 +22,15 @@ class GWLimitBySum {
 				'validation_message' => __('You ordered %1$s of this item. There are only %2$s of this item left.'),
 				'remainder_message' => __('There are %1$s of this item left.'),
 				'approved_payments_only' => false,
-				'hide_form' => false,
-				'show_remaining' => true,
+				'hide_form' => false
 			));
 
 		$this->_args['input_id'] = $this->_args['field_id'];
 		extract($this->_args);
-
+		
 		add_filter("gform_pre_render_$form_id", array(&$this, 'limit_by_field_values'));
 		add_filter("gform_validation_$form_id", array(&$this, 'limit_by_field_values_validation'));
-
+		
 		if($approved_payments_only) {
 			add_filter('gwlimitbysum_query', array(&$this, 'limit_by_approved_only'));
 		}
@@ -45,10 +44,15 @@ class GWLimitBySum {
 		$this->_args['remaining'] = $this->_args['limit'] - $sum;
 
 		// Display remainder of ticketes on field if set and avaliable
-		if($sum < $this->_args['limit'] && $this->_args['show_remaining']) {
-			add_filter("gform_field_content", array(&$this, 'add_field_note'), 10, 5);
-
-		} else if($this->_args['hide_form']) {
+		if( $sum < $this->_args['limit'] ){
+			
+			if( !empty($this->_args['remainder_message']) ){
+				add_filter("gform_field_content", array(&$this, 'add_field_note'), 10, 5);
+			}
+			return $form;
+		}
+		
+		if($this->_args['hide_form']) {
 			add_filter('gform_get_form_filter', create_function('', 'return "' . $this->_args['limit_message'] . '";'));
 		} else {
 			add_filter('gform_field_input', array(&$this, 'hide_field'), 10, 2);

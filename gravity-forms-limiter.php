@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: 
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.2.1
+Version: 0.2.2
 Author URI: http://benhays.com
 
 ------------------------------------------------------------------------
@@ -146,7 +146,7 @@ class GFLimit {
 		check_ajax_referer( 'gf_limit_update_feed_active', 'gf_limit_update_feed_active' );
 		$id   = $_POST['feed_id'];
 		$feed = GFLimitData::get_feed( $id );
-		GFLimitData::update_feed( $id, $feed['form_id'], $_POST['is_active'], $feed['meta'] );
+		GFLimitData::update_feed( $id, $feed['form_id'], $feed['field_id'], $feed['limit'], $_POST['is_active'], $feed['meta'] );
 	}
 
 	// Create left nav menu under Forms
@@ -258,7 +258,7 @@ class GFLimit {
 				<thead>
 				<tr>
 					<th scope="col" id="cb" class="manage-column column-cb check-column" style=""><input type="checkbox"/></th>
-					<th scope="col" id="active" class="manage-column check-column"></th>
+					<!-- <th scope="col" id="active" class="manage-column check-column"></th> -->
 					<th scope="col" class="manage-column"><?php _e( 'Form', 'gf-limit' ) ?></th>
 					<th scope="col" class="manage-column"><?php _e( 'Field', 'gf-limit' ) ?></th>
 					<th scope="col" class="manage-column"><?php _e( 'Limit', 'gf-limit' ) ?></th>
@@ -269,7 +269,7 @@ class GFLimit {
 				<tfoot>
 				<tr>
 					<th scope="col" id="cb" class="manage-column column-cb check-column" style=""><input type="checkbox"/></th>
-					<th scope="col" id="active" class="manage-column check-column"></th>
+					<!--<th scope="col" id="active" class="manage-column check-column"></th>-->
 					<th scope="col" class="manage-column"><?php _e( 'Form', 'gf-limit' ) ?></th>
 					<th scope="col" class="manage-column"><?php _e( 'Field', 'gf-limit' ) ?></th>
 					<th scope="col" class="manage-column"><?php _e( 'Limit', 'gf-limit' ) ?></th>
@@ -287,11 +287,11 @@ class GFLimit {
 							?>
 						<tr class='author-self status-inherit' valign="top">
 							<th scope="row" class="check-column"><input type="checkbox" name="feed[]" value="<?php echo $feed['id'] ?>"/></th>
-							<td><img
+							<!--<td><img
 									src="<?php echo self::get_base_url() ?>/images/active<?php echo intval( $feed['is_active'] ) ?>.png"
 									alt="<?php echo $feed['is_active'] ? __( 'Active', 'gf-limit' ) : __( 'Inactive', 'gf-limit' );?>"
 									title="<?php echo $feed['is_active'] ? __( 'Active', 'gf-limit' ) : __( 'Inactive', 'gf-limit' );?>"
-									onclick="ToggleActive(this, <?php echo $feed['id'] ?>); "/></td>
+									onclick="ToggleActive(this, <?php echo $feed['id'] ?>); "/></td>-->
 							<td class="column-title">
 								<a href="admin.php?page=gf_limit&view=edit&id=<?php echo $feed['id'] ?>"
 									 title="<?php _e( 'Edit', 'gf-limit' ) ?>"><?php echo $feed['form_title'] ?></a>

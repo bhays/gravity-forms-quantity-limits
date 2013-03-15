@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: 
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.2
+Version: 0.2.1
 Author URI: http://benhays.com
 
 ------------------------------------------------------------------------
@@ -119,23 +119,25 @@ class GFLimit {
 			
 			// Cycle through feeds and add limits to the form
 			foreach( $feeds as $k=>$v ) {
+				// Enable if active
+				if( $v['is_active'] ){
+					// Replace variable strings
+					// {remaining} for remaining tickets
+					// {ordered} for tickets ordered
+					$validation = str_replace('{remaining}', '%2$s', $v['meta']['messages']['validation']);
+					$validation = str_replace('{ordered}', '%1$s', $validation);
+					$remainder = str_replace('{remaining}', '%1$s', $v['meta']['messages']['remainder']);
+					$sold_out = $v['meta']['messages']['sold_out'];				
 				
-				// Replace variable strings
-				// {remaining} for remaining tickets
-				// {ordered} for tickets ordered
-				$validation = str_replace('{remaining}', '%2$s', $v['meta']['messages']['validation']);
-				$validation = str_replace('{ordered}', '%1$s', $validation);
-				$remainder = str_replace('{remaining}', '%1$s', $v['meta']['messages']['remainder']);
-				$sold_out = $v['meta']['messages']['sold_out'];				
-			
-				new GWLimitBySum(array(
-					'form_id' => $v['form_id'],
-					'field_id' => $v['field_id'],
-					'limit' => $v['limit'],
-					'limit_message' => '<span class="error-notice">'.$sold_out.'</span>',
-					'validation_message' => $validation,
-					'remainder_message' => '<span class="remaining">'.$remainder.'</span>',
-				));
+					new GWLimitBySum(array(
+						'form_id' => $v['form_id'],
+						'field_id' => $v['field_id'],
+						'limit' => $v['limit'],
+						'limit_message' => '<span class="error-notice">'.$sold_out.'</span>',
+						'validation_message' => $validation,
+						'remainder_message' => '<span class="remaining">'.$remainder.'</span>',
+					));
+				}
 			}
 		}
 	}

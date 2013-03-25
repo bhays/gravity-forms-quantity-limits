@@ -4,7 +4,7 @@ Donate link:
 Tags: gravityforms products
 Requires at least: 3.3
 Tested up to: 3.5.1
-Stable tag: 0.6
+Stable tag: 0.6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,9 @@ No, this only works for single product fields with a quantity defined.
 
 
 == Changelog ==
+
+### 0.6.1
+* Hold off on validating updates
 
 ### 0.6
 * Better handling of versions and database creation

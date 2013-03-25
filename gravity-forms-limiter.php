@@ -504,7 +504,9 @@ class GFLimit {
 				
 				$config = apply_filters( 'gf_limit_feed_save_config', $config );
 				
-				$is_validation_error = GFLimitData::validation_error($config['form_id'], $config['field_id']);
+				// Figure out better validation for multiple feeds
+				// this breaks on updates
+				//$is_validation_error = GFLimitData::validation_error($config['form_id'], $config['field_id']);
 				
 				if ( $is_validation_error == FALSE ) {
 					

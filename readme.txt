@@ -4,7 +4,7 @@ Donate link:
 Tags: gravityforms products
 Requires at least: 3.3
 Tested up to: 3.5.1
-Stable tag: 
+Stable tag: 0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,13 @@ No, this only works for single product fields with a quantity defined.
 
 == Changelog ==
 
+### 0.6
+* Better handling of versions and database creation
+
+### 0.5
+* Don't allow duplicate limits on fields
+* Fixed JS issues with credit card fields
+
 ### 0.2.2
 * Disable checking and unchecking feeds for now
 
@@ -55,4 +62,3 @@ No, this only works for single product fields with a quantity defined.
 
 
 
-== Arbitrary section 1 ==

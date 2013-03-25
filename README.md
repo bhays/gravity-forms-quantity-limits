@@ -1,7 +1,7 @@
 Gravity Forms Quantity Limits
 =============================
 
-Version 0.2.2
+Version 0.6
 
 Limit the display of product fields with Gravity Forms based on the number of entries.
 
@@ -11,9 +11,6 @@ Great for event registration or product quantity limiting.
 
 Built with Better Inventory with Gravity Forms from Gravity Wiz
 http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
-
-## Todo
-* Validation for not allowing duplicate field limits
 
 ## Requirements
 * WordPress 3.5
@@ -27,16 +24,23 @@ http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
 
 ## Changelog
 
+### 0.6
+* Better handling of versions and database creation
+
+### 0.5
+* Don't allow duplicate limits on fields
+* Fixed JS issues with credit card fields
+
 ### 0.2.2
 * Disable checking and unchecking feeds for now
 
 ### 0.2.1
 * Fixed error when feed is unchecked
 
-### 0.2 (March 15, 2013)
+### 0.2 
 * Custom messages for remaining items, limit reached and validation
 
-### 0.1 (March 14, 2013)
+### 0.1 
 * Initial release
 
 ## License

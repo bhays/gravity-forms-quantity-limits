@@ -3,12 +3,13 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: 
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.2.2
+Version: 0.6
+Author: Ben Hays
 Author URI: http://benhays.com
 
 ------------------------------------------------------------------------
 Copyright 2013 Ben Hays
-last updated: March 15, 2013
+last updated: March 25, 2013
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -50,7 +51,7 @@ class GFLimit {
 	private static $path = "gravity-forms-limiter/gravity-forms-limiter.php";
 	private static $url = "http://benhays.com";
 	private static $slug = "gravity-forms-limiter";
-	public static $version = '0.1';
+	public static $version = '0.6';
 	private static $min_gravityforms_version = '1.6';
 	
 	private static $m_sold_out = "Sorry, this item is sold out.";
@@ -132,7 +133,7 @@ class GFLimit {
 					new GWLimitBySum(array(
 						'form_id' => $v['form_id'],
 						'field_id' => $v['field_id'],
-						'limit' => $v['limit'],
+						'limit' => $v['quantity_limit'],
 						'limit_message' => '<span class="error-notice">'.$sold_out.'</span>',
 						'validation_message' => $validation,
 						'remainder_message' => '<span class="remaining">'.$remainder.'</span>',
@@ -146,7 +147,7 @@ class GFLimit {
 		check_ajax_referer( 'gf_limit_update_feed_active', 'gf_limit_update_feed_active' );
 		$id   = $_POST['feed_id'];
 		$feed = GFLimitData::get_feed( $id );
-		GFLimitData::update_feed( $id, $feed['form_id'], $feed['field_id'], $feed['limit'], $_POST['is_active'], $feed['meta'] );
+		GFLimitData::update_feed( $id, $feed['form_id'], $feed['field_id'], $feed['quantity_limit'], $_POST['is_active'], $feed['meta'] );
 	}
 
 	// Create left nav menu under Forms
@@ -325,7 +326,7 @@ class GFLimit {
 									do_action( 'gf_limit_list_feeds_limit', $feed );
 								}
 								else {
-									echo $feed['limit'];
+									echo $feed['quantity_limit'];
 								}
 								?>
 							</td>
@@ -473,7 +474,7 @@ class GFLimit {
 			//getting setting id (0 when creating a new one)
 			$id  = ! empty( $_POST['limit_setting_id'] ) ? $_POST['limit_setting_id'] : absint( $_GET['id'] );
 			$config  = empty( $id ) ? array(
-				'limit'     => 10,
+				'quantity_limit' => 10,
 				'meta'      => array(
 					'field_name' => '',
 					'messages' => array(
@@ -489,9 +490,9 @@ class GFLimit {
 			if ( rgpost( 'gf_limit_submit' ) ) {
 				
 				//TODO: Preparing data for insert, add defaults for messages and the like.
-				$config['form_id']  = absint( rgpost( 'gf_limit_form' ) );
+				$config['form_id'] = absint( rgpost( 'gf_limit_form' ) );
 				$config['field_id'] = rgpost( 'limit_field_id' );
-				$config['limit']    = absint( rgpost( 'limit_limit' ) );
+				$config['quantity_limit'] = absint( rgpost( 'limit_limit' ) );
 				$config['meta'] = array(
 					'field_name'   => rgpost( 'limit_field_name' ),
 					'messages'     => array(
@@ -503,18 +504,18 @@ class GFLimit {
 				
 				$config = apply_filters( 'gf_limit_feed_save_config', $config );
 				
-				// TODO: don't allow the same field to be limited twice
-				$is_validation_error = apply_filters( 'gf_limit_config_validation', false, $config );
-
-				if ( ! $is_validation_error ) {
+				$is_validation_error = GFLimitData::validation_error($config['form_id'], $config['field_id']);
+				
+				if ( $is_validation_error == FALSE ) {
 					
-					$id = GFLimitData::update_feed( $id, $config['form_id'], $config['field_id'], $config['limit'], $config['is_active'], $config['meta'] );
+					$id = GFLimitData::update_feed( $id, $config['form_id'], $config['field_id'], $config['quantity_limit'], $config['is_active'], $config['meta'] );
 					?>
 				<div class="updated fade"
 						 style="padding:6px"><?php echo sprintf( __( "Limit set.  %sBack to list.%s", 'gf-limit' ), "<a href='?page=gf_limit'>", '</a>' ) ?></div>
 					<?php
 				}
 				else {
+					$validation_error_message = $is_validation_error;
 					$is_validation_error = true;
 				}
 			}
@@ -531,7 +532,8 @@ class GFLimit {
 			<?php
 			if ( $is_validation_error ) {
 				?>
-				<span><?php _e( 'There was an issue saving your feed. Please address the errors below and try again.' ); ?></span>
+				<span><?php _e( 'There was an issue saving your feed. '.$validation_error_message ); ?></span>
+				
 				<?php
 			}
 			?>
@@ -598,7 +600,7 @@ class GFLimit {
 				<label class="left_header"><?php _e( 'Limit', 'gf-limit' ); ?> <?php gform_tooltip( 'limit_limit' ) ?></label>
 
 				<div id="form_fields">
-					<input type="text" name="limit_limit" value="<?php echo $config['limit'] ?>"/>
+					<input type="text" name="limit_limit" value="<?php echo $config['quantity_limit'] ?>"/>
 				</div>
 			</div>
 
@@ -686,10 +688,10 @@ class GFLimit {
 				return true;
 			}
 
-			function EndSelectForm(form_meta, customer_fields, additional_functions) {
+			function EndSelectForm(form_meta, quantity_fields, additional_functions) {
 				//setting global form object
 				form = form_meta;
-
+				
 				if ( ! ( typeof additional_functions === 'null' ) ) {
 					var populate_field_options = additional_functions.populate_field_options;
 					var post_update_action = additional_functions.post_update_action;
@@ -709,14 +711,9 @@ class GFLimit {
 					jQuery("#limit_wait").hide();
 					return;
 				}
-				else if ((type == "product" || type == "subscription") && GetFieldsByType(["creditcard"]).length == 0) {
-					jQuery("#gf_limit_invalid_creditcard_form").show();
-					jQuery("#limit_wait").hide();
-					return;
-				}
-				
+
 				jQuery(".limit_field_container").hide();
-				jQuery("#form_fields").html(customer_fields);
+				jQuery("#form_fields").html(quantity_fields);
 				if ( populate_field_options.length > 0 ) {
 					var func;
 					for ( var i = 0; i < populate_field_options.length; i++ ) {
@@ -752,7 +749,7 @@ class GFLimit {
 						func(type);
 					}
 				}
-
+				console.log('Made it here');
 				jQuery("#limit_field_group").slideDown();
 				jQuery("#limit_wait").hide();
 			}
@@ -797,7 +794,7 @@ class GFLimit {
 			//fields meta
 			$form = RGFormsModel::get_form_meta( $form_id );
 
-			$customer_fields         = self::get_quantity_fields( $form );
+			$quantity_fields         = self::get_quantity_fields( $form );
 			$more_endselectform_args = array( 
 											'populate_field_options' => array(),
 											'post_update_action' => array(),
@@ -805,7 +802,7 @@ class GFLimit {
 										);
 			$more_endselectform_args = apply_filters( 'gf_limit_feed_endselectform_args', $more_endselectform_args, $form );
 
-			die( "EndSelectForm(" . GFCommon::json_encode( $form ) . ", '" . str_replace( "'", "\'", $customer_fields ) . "', " . GFCommon::json_encode( $more_endselectform_args ) .");" );
+			die( "EndSelectForm(" . GFCommon::json_encode( $form ) . ", '" . str_replace( "'", "\'", $quantity_fields ) . "', " . GFCommon::json_encode( $more_endselectform_args ) .");" );
 		}
 
 	public static function add_permissions() {
@@ -904,39 +901,6 @@ class GFLimit {
 			return $has_members_plugin ? $required_permission : 'level_7';
 		else
 			return false;
-	}
-
-	private static function get_customer_fields() {
-		return 
-			array(
-				array(
-					'name'     => 'first_name',
-					'label'    => __( 'First Name', 'gf-limit' ) ),
-				array(
-					'name'     => 'last_name',
-					'label'    => __( 'Last Name', 'gf-limit' ) ),
-				array(
-					'name'     => 'email',
-					'label'    => __( 'Email', 'gf-limit' ) ),
-				array(
-					'name'     => 'address1',
-					'label'    => __( 'Address', 'gf-limit' ) ),
-				array(
-					'name'     => 'address2',
-					'label'    => __( 'Address 2', 'gf-limit' ) ),
-				array(
-					'name'     => 'city',
-					'label'    => __( 'City', 'gf-limit' ) ),
-				array(
-					'name'     => 'state',
-					'label'    => __( 'State', 'gf-limit' ) ),
-				array(
-					'name'     => 'zip',
-					'label'    => __( 'Zip', 'gf-limit' ) ),
-				array(
-					'name'     => 'country',
-					'label'    => __( 'Country', 'gf-limit' ) )
-			);
 	}
 
 	private static function get_mapped_field_list( $variable_name, $selected_field, $fields ) {

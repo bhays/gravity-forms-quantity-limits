@@ -6,7 +6,7 @@ class GFLimitData{
         $table_name = self::get_limit_table_name();
 
         if ( ! empty($wpdb->charset) )
-            $charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
+            $charset_collate = " DEFAULT CHARACTER SET $wpdb->charset";
         if ( ! empty($wpdb->collate) )
             $charset_collate .= " COLLATE $wpdb->collate";
 
@@ -14,7 +14,7 @@ class GFLimitData{
               id mediumint(8) unsigned not null auto_increment,
               form_id mediumint(8) unsigned not null,
               field_id float unsigned not null,
-              limit mediumint(8) unsigned not null,
+              quantity_limit mediumint(8) unsigned not null,
               is_active tinyint(1) not null default 1,
               meta longtext,
               PRIMARY KEY  (id),
@@ -34,7 +34,7 @@ class GFLimitData{
         global $wpdb;
         $table_name = self::get_limit_table_name();
         $form_table_name = RGFormsModel::get_form_table_name();
-        $sql = "SELECT s.id, s.is_active, s.form_id, s.field_id, s.limit, s.meta, f.title as form_title
+        $sql = "SELECT s.id, s.is_active, s.form_id, s.field_id, s.quantity_limit, s.meta, f.title as form_title
                 FROM $table_name s
                 INNER JOIN $form_table_name f ON s.form_id = f.id";
 
@@ -74,7 +74,7 @@ class GFLimitData{
     public static function get_feed($id){
         global $wpdb;
         $table_name = self::get_limit_table_name();
-        $sql = $wpdb->prepare("SELECT id, form_id, field_id, `limit`, is_active, meta FROM $table_name WHERE id=%d", $id);
+        $sql = $wpdb->prepare("SELECT id, form_id, field_id, quantity_limit, is_active, meta FROM $table_name WHERE id=%d", $id);
         $results = $wpdb->get_results($sql, ARRAY_A);
         if(empty($results))
             return array();
@@ -84,7 +84,20 @@ class GFLimitData{
         
         return $result;
     }
-
+    
+    public static function validation_error($form_id, $field_id){
+        global $wpdb;
+        $table_name = self::get_limit_table_name();
+        $sql = $wpdb->prepare("SELECT id FROM $table_name WHERE form_id=%d AND CAST(field_id as unsigned)=%s", $form_id, floor($field_id));
+        $results = $wpdb->get_results($sql, ARRAY_A);
+		if( empty($results) ){
+        	// No duplicates and no errors
+            return FALSE;	        
+        } else {
+	        return "Feed already exists for the form and field.";
+        }
+    }
+    
     public static function update_feed($id, $form_id, $field_id, $limit, $is_active, $setting){
         global $wpdb;
         $table_name = self::get_limit_table_name();
@@ -93,18 +106,18 @@ class GFLimitData{
         if($id == 0){
             //insert
             $wpdb->insert($table_name, array(
-	            	"form_id"     => $form_id, 
-	            	"field_id"    => $field_id, 
-	            	"limit"       => $limit, 
-	            	"is_active"   => $is_active, 
-	            	"meta"        => $setting), 
+	            	"form_id"         => $form_id, 
+	            	"field_id"        => $field_id, 
+	            	"quantity_limit"  => $limit, 
+	            	"is_active"       => $is_active, 
+	            	"meta"            => $setting), 
 	            	array("%d", "%f", "%d", "%d", "%s")
 	            );
             $id = $wpdb->get_var("SELECT LAST_INSERT_ID()");
         }
         else{
             //update
-            $wpdb->update($table_name, array("form_id" => $form_id, "field_id" => $field_id, "limit" => $limit, "is_active"=> $is_active, "meta" => $setting), array("id" => $id), array("%d", "%f", "%d", "%d", "%s"), array("%d"));
+            $wpdb->update($table_name, array("form_id" => $form_id, "field_id" => $field_id, "quantity_limit" => $limit, "is_active"=> $is_active, "meta" => $setting), array("id" => $id), array("%d", "%f", "%d", "%d", "%s"), array("%d"));
         }
 
         return $id;

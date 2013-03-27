@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: Gravity Forms Quantiy Limits
-Plugin URI: 
+Plugin URI: https://github.com/bhays/gravity-forms-limiter
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.6.1
+Version: 0.6.2
 Author: Ben Hays
 Author URI: http://benhays.com
 
@@ -48,11 +48,11 @@ register_activation_hook( GF_LIMIT_FILE, array( 'GFLimit', 'add_permissions' ) )
 
 class GFLimit {
 
-	private static $path = "gravity-forms-limiter/gravity-forms-limiter.php";
-	private static $url = "http://benhays.com";
-	private static $slug = "gravity-forms-limiter";
-	public static $version = '0.6';
+	public static $version = '0.6.2';
+
 	private static $min_gravityforms_version = '1.6';
+	private static $path = "gravity-forms-limiter/gravity-forms-limiter.php";
+	private static $slug = "gravity-forms-limiter";
 	
 	private static $m_sold_out = "Sorry, this item is sold out.";
 	private static $m_validation = "You ordered {ordered} items. There are only {remaining} items left.";
@@ -506,6 +506,7 @@ class GFLimit {
 				
 				// Figure out better validation for multiple feeds
 				// this breaks on updates
+				// Validate limit as non-negative integer
 				//$is_validation_error = GFLimitData::validation_error($config['form_id'], $config['field_id']);
 				
 				if ( $is_validation_error == FALSE ) {
@@ -856,13 +857,8 @@ class GFLimit {
 			GFLimitData::drop_tables();
 
 			//removing options
-			delete_option( 'gf_limit_site_name' );
-			delete_option( 'gf_limit_auth_token' );
 			delete_option( 'gf_limit_version' );
 			delete_option( 'gf_limit_settings' );
-
-			//delete lead meta data
-			//self::delete_limit_meta();
 
 			//Deactivating plugin
 			$plugin = 'gravity-forms-limiter/gravity-forms-limiter.php';
@@ -1001,7 +997,7 @@ class GFLimit {
 	}
 
     function gform_logging_supported( $plugins ) {
-	$plugins[ self::$slug ] = 'More Stripe';
+	$plugins[ self::$slug ] = 'More Quantity Limits';
 		return $plugins;
 	}
 

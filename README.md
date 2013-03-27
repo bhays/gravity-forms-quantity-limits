@@ -1,7 +1,7 @@
 Gravity Forms Quantity Limits
 =============================
 
-Version 0.6.1
+Version 0.6.2
 
 Limit the display of product fields with Gravity Forms based on the number of entries.
 

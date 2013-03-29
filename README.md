@@ -15,7 +15,7 @@ http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
 ## Requirements
 * WordPress 3.5
 * PHP 5.3
-* Gravity Forms 1.6 - [Grab a license](http://www.gravityforms.com/) if you don't already have one
+* Gravity Forms 1.6 - [Grab a license](http://benjaminhays.com/gravityforms) if you don't already have one
 
 ## Installation
 1. Install as a regular WordPress plugin

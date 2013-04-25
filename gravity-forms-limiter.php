@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: https://github.com/bhays/gravity-forms-limiter
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.6.2
+Version: 0.6.3
 Author: Ben Hays
 Author URI: http://benhays.com
 
@@ -48,7 +48,7 @@ register_activation_hook( GF_LIMIT_FILE, array( 'GFLimit', 'add_permissions' ) )
 
 class GFLimit {
 
-	public static $version = '0.6.2';
+	public static $version = '0.6.3';
 
 	private static $min_gravityforms_version = '1.6';
 	private static $path = "gravity-forms-limiter/gravity-forms-limiter.php";
@@ -130,7 +130,7 @@ class GFLimit {
 					$remainder = str_replace('{remaining}', '%1$s', $v['meta']['messages']['remainder']);
 					$sold_out = $v['meta']['messages']['sold_out'];				
 				
-					new GWLimitBySum(array(
+					new MY_GWLimitBySum(array(
 						'form_id' => $v['form_id'],
 						'field_id' => $v['field_id'],
 						'limit' => $v['quantity_limit'],
@@ -336,7 +336,7 @@ class GFLimit {
 									do_action( 'gf_limit_list_current_amount', $feed );
 								}
 								else {
-									echo GWLimitBySum::get_field_values_sum($feed['form_id'], $feed['field_id']);
+									echo MY_GWLimitBySum::get_field_values_sum($feed['form_id'], $feed['field_id']);
 								}
 								?>
 							</td>

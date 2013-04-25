@@ -8,7 +8,7 @@
  *  - Added display of remaining inventory
  */
 
-class GWLimitBySum {
+class MY_GWLimitBySum {
 
 	private $_args;
 

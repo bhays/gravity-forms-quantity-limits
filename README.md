@@ -1,7 +1,7 @@
 Gravity Forms Quantity Limits
 =============================
 
-Version 0.6.2
+Version 0.6.3
 
 Limit the display of product fields with Gravity Forms based on the number of entries.
 
@@ -23,6 +23,9 @@ http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
 3. Navigate to Forms->Quantity Limits to setup limit feeds for the desired quantity fields
 
 ## Changelog
+
+### 0.6.3
+* Change class name for Gravity Wiz conflicts
 
 ### 0.6.1
 * Hold off on validating updates

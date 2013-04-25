@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: https://github.com/bhays/gravity-forms-limiter
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.6.3
+Version: 0.6.4
 Author: Ben Hays
 Author URI: http://benhays.com
 
@@ -48,7 +48,7 @@ register_activation_hook( GF_LIMIT_FILE, array( 'GFLimit', 'add_permissions' ) )
 
 class GFLimit {
 
-	public static $version = '0.6.3';
+	public static $version = '0.6.4';
 
 	private static $min_gravityforms_version = '1.6';
 	private static $path = "gravity-forms-limiter/gravity-forms-limiter.php";

@@ -27,10 +27,10 @@ class MY_GWLimitBySum {
 
 		$this->_args['input_id'] = $this->_args['field_id'];
 		extract($this->_args);
-		
+
 		add_filter("gform_pre_render_$form_id", array(&$this, 'limit_by_field_values'));
 		add_filter("gform_validation_$form_id", array(&$this, 'limit_by_field_values_validation'));
-		
+
 		if($approved_payments_only) {
 			add_filter('gwlimitbysum_query', array(&$this, 'limit_by_approved_only'));
 		}
@@ -45,13 +45,13 @@ class MY_GWLimitBySum {
 
 		// Display remainder of ticketes on field if set and avaliable
 		if( $sum < $this->_args['limit'] ){
-			
+
 			if( !empty($this->_args['remainder_message']) ){
 				add_filter("gform_field_content", array(&$this, 'add_field_note'), 10, 5);
 			}
 			return $form;
 		}
-		
+
 		if($this->_args['hide_form']) {
 			add_filter('gform_get_form_filter', create_function('', 'return "' . $this->_args['limit_message'] . '";'));
 		} else {
@@ -64,16 +64,16 @@ class MY_GWLimitBySum {
 	public function limit_by_field_values_validation($validation_result) {
 
 		extract($this->_args);
-		
+
 		$form = $validation_result['form'];
 		$exceeded_limit = false;
-			
+
 		foreach($form['fields'] as &$field) {
 
 			if($field['id'] != intval($input_id)) {
 				continue;
 			}
-			
+
 			$requested_value = rgpost("input_" . str_replace('.', '_', $input_id));
 			$field_sum = self::get_field_values_sum($form['id'], $input_id);
 
@@ -91,7 +91,7 @@ class MY_GWLimitBySum {
 
 		$validation_result['form'] = $form;
 		$validation_result['is_valid'] = !$validation_result['is_valid'] ? false : !$exceeded_limit;
-		
+
 		return $validation_result;
 	}
 
@@ -123,9 +123,9 @@ class MY_GWLimitBySum {
 
 		// Count only entries that are active and not in the trash
 		$query['from'] .= " INNER JOIN {$wpdb->prefix}rg_lead l ON l.id = ld.lead_id";
-		$query['where'] .= ' AND l.status = \'active\'';
-
+		$query['where'] .= " AND l.status = 'active' AND value REGEXP '^-?[0-9]+$'";
 		$sql = implode(' ', $query);
+
 		return $wpdb->get_var($sql);
 	}
 

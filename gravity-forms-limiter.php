@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: https://github.com/bhays/gravity-forms-limiter
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.6.4
+Version: 0.7
 Author: Ben Hays
 Author URI: http://benhays.com
 
@@ -53,7 +53,7 @@ class GFLimit {
 	private static $min_gravityforms_version = '1.6';
 	private static $path = "gravity-forms-limiter/gravity-forms-limiter.php";
 	private static $slug = "gravity-forms-limiter";
-	
+
 	private static $m_sold_out = "Sorry, this item is sold out.";
 	private static $m_validation = "You ordered {ordered} items. There are only {remaining} items left.";
 	private static $m_remainder = "{remaining} items remaining.";
@@ -75,7 +75,7 @@ class GFLimit {
 
 		//loading data lib
 		require_once( GF_LIMIT_PATH . '/inc/data.php' );
-			
+
 		// load our limit functions
 		require_once( GF_LIMIT_PATH . '/inc/gf_field_sum.php' );
 
@@ -98,7 +98,7 @@ class GFLimit {
 
 				//enqueueing sack for AJAX requests
 				wp_enqueue_script( array( 'sack' ) );
-				
+
 				//loading Gravity Forms tooltips
 				require_once( GFCommon::get_base_path().'/tooltips.php' );
 				add_filter( 'gform_tooltips', array( 'GFLimit', 'gform_tooltips' ) );
@@ -117,7 +117,7 @@ class GFLimit {
 		else {
 			// Load feed data
 			$feeds = GFLimitData::get_feeds();
-			
+
 			// Cycle through feeds and add limits to the form
 			foreach( $feeds as $k=>$v ) {
 				// Enable if active
@@ -128,8 +128,8 @@ class GFLimit {
 					$validation = str_replace('{remaining}', '%2$s', $v['meta']['messages']['validation']);
 					$validation = str_replace('{ordered}', '%1$s', $validation);
 					$remainder = str_replace('{remaining}', '%1$s', $v['meta']['messages']['remainder']);
-					$sold_out = $v['meta']['messages']['sold_out'];				
-				
+					$sold_out = $v['meta']['messages']['sold_out'];
+
 					new MY_GWLimitBySum(array(
 						'form_id' => $v['form_id'],
 						'field_id' => $v['field_id'],
@@ -184,7 +184,7 @@ class GFLimit {
 			'limit_message_sold_out'     => '<h6>'.__( 'Sold Out Message', 'gf-limit' ).'</h6>'.__( 'Message to be displayed when item has reached the set limit', 'gf-limit' ),
 			'limit_message_validation'   => '<h6>'.__( 'Validation Message', 'gf-limit' ).'</h6>'.__( 'Message to be displayed when someone selects too many of a quantity.', 'gf-limit' ),
 			'limit_message_remainder'    => '<h6>'.__( 'Remainder Message', 'gf-limit' ).'</h6>'.__( 'Message to be displayed for remaining items', 'gf-limit' ),
-			
+
 		);
 		return array_merge( $tooltips, $limit_tooltips );
 	}
@@ -282,9 +282,9 @@ class GFLimit {
 					<?php
 
 					$feeds = GFLimitData::get_feeds();
-					
+
 					if ( is_array( $feeds ) && sizeof( $feeds ) > 0 ) {
-						foreach ( $feeds as $feed ) { 
+						foreach ( $feeds as $feed ) {
 							?>
 						<tr class='author-self status-inherit' valign="top">
 							<th scope="row" class="check-column"><input type="checkbox" name="feed[]" value="<?php echo $feed['id'] ?>"/></th>
@@ -485,10 +485,10 @@ class GFLimit {
 				),
 				'is_active' => true ) : GFLimitData::get_feed( $id );
 			$is_validation_error = false;
-			
+
 			//updating meta information
 			if ( rgpost( 'gf_limit_submit' ) ) {
-				
+
 				//TODO: Preparing data for insert, add defaults for messages and the like.
 				$config['form_id'] = absint( rgpost( 'gf_limit_form' ) );
 				$config['field_id'] = rgpost( 'limit_field_id' );
@@ -501,16 +501,16 @@ class GFLimit {
 						'remainder'   => rgpost('limit_message_remainder')
 					),
 				);
-				
+
 				$config = apply_filters( 'gf_limit_feed_save_config', $config );
-				
+
 				// Figure out better validation for multiple feeds
 				// this breaks on updates
 				// Validate limit as non-negative integer
 				//$is_validation_error = GFLimitData::validation_error($config['form_id'], $config['field_id']);
-				
+
 				if ( $is_validation_error == FALSE ) {
-					
+
 					$id = GFLimitData::update_feed( $id, $config['form_id'], $config['field_id'], $config['quantity_limit'], $config['is_active'], $config['meta'] );
 					?>
 				<div class="updated fade"
@@ -526,17 +526,17 @@ class GFLimit {
 			$form = isset( $config['form_id'] ) && $config['form_id'] ? $form = RGFormsModel::get_form_meta( $config['form_id'] ) : array();
 			$settings = get_option('gf_limit_settings');
 			?>
-		
+
 		<form method="post" action="">
 		<input type="hidden" name="limit_setting_id" value="<?php echo $id ?>" />
 		<input type="hidden" id="limit_field_name" name="limit_field_name" value="<?php echo $config['meta']['field_name'] ?>"/>
-		
+
 		<div class="margin_vertical_10 <?php echo $is_validation_error ? 'limit_validation_error' : '' ?>">
 			<?php
 			if ( $is_validation_error ) {
 				?>
 				<span><?php _e( 'There was an issue saving your feed. '.$validation_error_message ); ?></span>
-				
+
 				<?php
 			}
 			?>
@@ -574,9 +574,9 @@ class GFLimit {
 
 				<?php endforeach; ?>
 			</select>
-			
+
 			&nbsp;&nbsp;
-			
+
 			<img src="<?php echo GFLimit::get_base_url() ?>/images/loading.gif" id="limit_wait" style="display: none;"/>
 
 			<div id="gf_limit_invalid_product_form" class="gf_limit_invalid_form" style="display:none;">
@@ -634,7 +634,7 @@ class GFLimit {
 			</div>
 
 		<?php do_action( 'gform_limit_add_option_group', $config, $form ); ?>
-		
+
 			<div id="limit_submit_container" class="margin_vertical_30">
 				<input type="submit" name="gf_limit_submit"
 							 value="<?php echo empty( $id ) ? __( '  Save  ', 'gf-limit' ) : __( 'Update', 'gf-limit' ); ?>"
@@ -694,7 +694,7 @@ class GFLimit {
 			function EndSelectForm(form_meta, quantity_fields, additional_functions) {
 				//setting global form object
 				form = form_meta;
-				
+
 				if ( ! ( typeof additional_functions === 'null' ) ) {
 					var populate_field_options = additional_functions.populate_field_options;
 					var post_update_action = additional_functions.post_update_action;
@@ -752,7 +752,7 @@ class GFLimit {
 						func(type);
 					}
 				}
-				console.log('Made it here');
+
 				jQuery("#limit_field_group").slideDown();
 				jQuery("#limit_wait").hide();
 			}
@@ -780,7 +780,7 @@ class GFLimit {
 				var val = jQuery('select[name=limit_field_id] option:selected').text();
 				jQuery('#limit_field_name').val(val);
 			});
-			
+
 		</script>
 		<?php
 
@@ -798,7 +798,7 @@ class GFLimit {
 			$form = RGFormsModel::get_form_meta( $form_id );
 
 			$quantity_fields         = self::get_quantity_fields( $form );
-			$more_endselectform_args = array( 
+			$more_endselectform_args = array(
 											'populate_field_options' => array(),
 											'post_update_action' => array(),
 											'show_fields' => array()
@@ -884,11 +884,11 @@ class GFLimit {
 
 		//getting list of all fields for the selected form
 		$form_fields = self::get_form_fields( $form );
-		
+
 		$selected_field = $config ? $config['field_id'] : "";
-		
+
 		$ret = self::get_mapped_field_list('field_id', $selected_field, $form_fields);
-		
+
 		return $ret;
 	}
 
@@ -936,10 +936,10 @@ class GFLimit {
 
 	private static function get_form_fields( $form ) {
 		$fields = array();
-		
+
 		if ( is_array( $form['fields'] ) ) {
 			foreach ( $form['fields'] as $field ) {
-			
+
 				// Limit to products as single product fields only
 				if( $field['type'] == 'product' && $field['inputType'] == 'singleproduct' ) {
 
@@ -1001,14 +1001,14 @@ class GFLimit {
 		return $plugins;
 	}
 
-    private static function log_error( $message ) {
+    public static function log_error( $message ) {
         if( class_exists( 'GFLogging' ) ) {
             GFLogging::include_logger();
             GFLogging::log_message( self::$slug, $message, KLogger::ERROR );
         }
     }
 
-	private static function log_debug( $message ) {
+	public static function log_debug( $message ) {
 		if(class_exists( 'GFLogging' ) ) {
 			GFLogging::include_logger();
 			GFLogging::log_message( self::$slug, $message, KLogger::DEBUG );

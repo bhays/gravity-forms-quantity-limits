@@ -1,7 +1,7 @@
 Gravity Forms Quantity Limits
 =============================
 
-Version 0.6.3
+Version 0.7
 
 Limit the display of product fields with Gravity Forms based on the number of entries.
 
@@ -10,7 +10,7 @@ Currently only works for single product fields with a quantity defined. Limit do
 Great for event registration or product quantity limiting.
 
 Built with Better Inventory with Gravity Forms from Gravity Wiz
-http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
+http://gravitywiz.com/better-inventory-with-gravity-forms/
 
 ## Requirements
 * WordPress 3.5
@@ -23,6 +23,9 @@ http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
 3. Navigate to Forms->Quantity Limits to setup limit feeds for the desired quantity fields
 
 ## Changelog
+
+### 0.7
+* Fix value sum error if field name begins with an integer
 
 ### 0.6.3
 * Change class name for Gravity Wiz conflicts
@@ -43,10 +46,10 @@ http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
 ### 0.2.1
 * Fixed error when feed is unchecked
 
-### 0.2 
+### 0.2
 * Custom messages for remaining items, limit reached and validation
 
-### 0.1 
+### 0.1
 * Initial release
 
 ## License

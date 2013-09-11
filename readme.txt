@@ -1,10 +1,10 @@
 === Gravity Forms Quantity Limiter ===
 Contributors: benhays
-Donate link: 
+Donate link:
 Tags: gravity forms, gravityforms, quantity, products, quantity limits, inventory
 Requires at least: 3.3
 Tested up to: 3.5.1
-Stable tag: 0.6.4
+Stable tag: 0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,7 @@ Currently only works for single product fields with a quantity defined. Limit do
 Great for event registration or product quantity limiting.
 
 Built with Better Inventory with Gravity Forms from Gravity Wiz
-http://gravitywiz.com/2012/09/19/better-inventory-with-gravity-forms/
+http://gravitywiz.com/better-inventory-with-gravity-forms/
 
 == Installation ==
 
@@ -38,6 +38,9 @@ No, this only works for single product fields with a quantity defined.
 
 
 == Changelog ==
+
+### 0.7
+* Fix value sum error if field name begins with an integer
 
 ### 0.6.3
 * Change class name for Gravity Wiz conflicts

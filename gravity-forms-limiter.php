@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Quantiy Limits
 Plugin URI: https://github.com/bhays/gravity-forms-limiter
 Description: Limit specific Gravity Forms quantity fields
-Version: 0.7
+Version: 0.8
 Author: Ben Hays
 Author URI: http://benhays.com
 
@@ -947,7 +947,8 @@ class GFLimit {
 					$label = $field['label'];
 					if ( is_array( rgar( $field, 'inputs' ) ) ) {
 						foreach ( $field['inputs'] as $input ){
-							if( $input['label'] == 'Quantity' ){
+
+							if( strstr($input['id'], '.3') ){
 								$fields[ ] = array( $input['id'], $label );
 							}
 						}

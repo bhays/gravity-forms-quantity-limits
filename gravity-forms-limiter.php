@@ -941,7 +941,7 @@ class GFLimit {
 			foreach ( $form['fields'] as $field ) {
 
 				// Limit to products as single product fields only
-				if( $field['type'] == 'product' && $field['inputType'] == 'singleproduct' ) {
+				if( self::is_singleproduct( $field, $form ) ) {
 
 					// Set label for as the field
 					$label = $field['label'];
@@ -960,6 +960,25 @@ class GFLimit {
 			}
 		}
 		return $fields;
+	}
+
+	/**
+	* check field to see if it's a Product/singleproduct, or a Quantity field associated with a Product/singleproduct
+	* @param GF_Field $field
+	* @param array $form
+	* @return bool
+	*/
+	private static function is_singleproduct( $field, $form ) {
+		if( $field->get_input_type() === 'singleproduct' ) {
+			return true;
+		}
+
+		if( $field->type === 'quantity' && $field->productField ) {
+			$productField = GFFormsModel::get_field( $form, $field->productField );
+			return $productField ? $productField->get_input_type() === 'singleproduct' : false;
+		}
+
+		return false;
 	}
 
 	private static function get_form_fields_full( $form ) {

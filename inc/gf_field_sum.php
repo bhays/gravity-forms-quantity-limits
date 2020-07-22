@@ -6,6 +6,10 @@
  *
  * Modified for Gravity Forms Limiter plugin:
  *  - Added display of remaining inventory
+ *
+ * July 2020 Updated with code from here:
+ * https://gravitywiz.com/better-inventory-with-gravity-forms/
+ * To work with new Gravity Forms Database Tables
  */
 
 class MY_GWLimitBySum {
@@ -32,7 +36,7 @@ class MY_GWLimitBySum {
 		add_filter("gform_validation_$form_id", array(&$this, 'limit_by_field_values_validation'));
 
 		if($approved_payments_only) {
-			add_filter('gwlimitbysum_query', array(&$this, 'limit_by_approved_only'));
+			add_filter('gwlimitbysum_query', array(&$this, 'limit_by_approved_payments_only'));
 		}
 	}
 
@@ -112,28 +116,57 @@ class MY_GWLimitBySum {
 		return $field_content;
 	}
 
-	public static function get_field_values_sum($form_id, $input_id) {
+	public static function get_field_values_sum( $form_id, $input_id ) {
 		global $wpdb;
 
-		$query = apply_filters('gwlimitbysum_query', array(
-				'select' => 'SELECT sum(value)',
-				'from' => "FROM {$wpdb->prefix}rg_lead_detail ld",
-				'where' => $wpdb->prepare("WHERE ld.form_id = %d AND CAST(ld.field_number as unsigned) = %d", $form_id, $input_id)
-			));
+		$query  = self::get_sum_query( $form_id, $input_id );
+		$sql    = implode( "\n", $query );
+		$result = $wpdb->get_var( $sql );
 
-		// Count only entries that are active and not in the trash
-		$query['from'] .= " INNER JOIN {$wpdb->prefix}rg_lead l ON l.id = ld.lead_id";
-		$query['where'] .= " AND l.status = 'active' AND value REGEXP '^-?[0-9]+$'";
-		$sql = implode(' ', $query);
-
-		return $wpdb->get_var($sql);
+		return intval( $result );
 	}
 
-	public static function limit_by_approved_only($query) {
+	public static function get_sum_query( $form_id, $input_id, $suppress_filters = false ) {
 		global $wpdb;
-		$query['from'] .= " INNER JOIN {$wpdb->prefix}rg_lead l ON l.id = ld.lead_id";
-		$query['where'] .= ' AND l.payment_status = \'Approved\'';
+
+		$query = array(
+			'select' => 'SELECT sum( em.meta_value )',
+			'from'   => "FROM {$wpdb->prefix}gf_entry_meta em",
+			'join'   => "INNER JOIN {$wpdb->prefix}gf_entry e ON e.id = em.entry_id",
+			'where'  => $wpdb->prepare( "
+                WHERE em.form_id = %d
+                AND em.meta_key = %s 
+                AND e.status = 'active'\n",
+				$form_id, $input_id
+			)
+		);
+
+		if( class_exists( 'GF_Partial_Entries' ) ) {
+			$query['where'] .= "and em.entry_id NOT IN( SELECT entry_id FROM {$wpdb->prefix}gf_entry_meta WHERE meta_key = 'partial_entry_id' )";
+		}
+
+		if( ! $suppress_filters ) {
+			$query  = apply_filters( 'gwlimitbysum_query',                 $query, $form_id, $input_id );
+			$query  = apply_filters( 'gwinv_query',                        $query, $form_id, $input_id );
+			$query  = apply_filters( "gwinv_query_{$form_id}",             $query, $form_id, $input_id );
+			$query  = apply_filters( "gwinv_query_{$form_id}_{$input_id}", $query, $form_id, $input_id );
+		}
+
 		return $query;
+	}
+
+	public function limit_by_approved_payments_only( $query ) {
+		$valid_statuses = array( 'Approved' /* old */, 'Paid', 'Active' );
+		$query['where'] .= sprintf( ' AND ( e.payment_status IN ( %s ) OR e.payment_status IS NULL )', self::prepare_strings_for_mysql_in_statement( $valid_statuses ) );
+		return $query;
+	}
+
+	public static function prepare_strings_for_mysql_in_statement( $strings ) {
+		$wrapped = array();
+		foreach( $strings as $string ) {
+			$wrapped[] = sprintf( '"%s"', $string );
+		}
+		return implode( ', ', $wrapped );
 	}
 
 }
